@@ -1,4 +1,3 @@
-
 import application = require("application");
 import frame = require("ui/frame");
 import data_observable = require("data/observable");
@@ -11,9 +10,12 @@ declare var net: any;
 
 interface UploadInfo {
     getUploadId(): string;
+
     getTotalBytes(): number;
+
     getUploadedBytes(): number;
 }
+
 interface ServerResponse {
     getBodyAsString(): string;
 }
@@ -22,13 +24,15 @@ var ProgressReceiver = (<any>net).gotev.uploadservice.UploadServiceBroadcastRece
     onProgress(uploadInfo: UploadInfo) {
         //console.log("onProgress");
         var uploadId = uploadInfo.getUploadId();
-        var task = uploadId?Task.fromId(uploadId):uploadInfo.object;
-            var totalBytes = uploadInfo.getTotalBytes();
-            var currentBytes = uploadInfo.getUploadedBytes();
+        var task = uploadId ? Task.fromId(uploadId) : uploadInfo.object;
+        var totalBytes = uploadInfo.getTotalBytes();
+        var currentBytes = uploadInfo.getUploadedBytes();
+        if (task) {
             task.setTotalUpload(totalBytes);
             task.setUpload(currentBytes);
             task.setStatus("uploading");
-            task.notify({ eventName: "progress", object: task, currentBytes: currentBytes, totalBytes: totalBytes });
+            task.notify({eventName: "progress", object: task, currentBytes: currentBytes, totalBytes: totalBytes});
+        }
     },
 
     onCancelled(uploadInfo: UploadInfo) {
@@ -41,26 +45,26 @@ var ProgressReceiver = (<any>net).gotev.uploadservice.UploadServiceBroadcastRece
         var uploadId = uploadInfo.getUploadId();
         var task = Task.fromId(uploadId);
         task.setStatus("error");
-        task.notify({ eventName: "error", object: task, error: error });
+        task.notify({eventName: "error", object: task, error: error});
     },
 
     onCompleted(uploadInfo: UploadInfo, serverResponse: ServerResponse) {
         //console.log("onCompleted");
         var uploadId = uploadInfo.getUploadId();
-        var task = uploadId?Task.fromId(uploadId):uploadInfo.object;
-
+        var task = uploadId ? Task.fromId(uploadId) : uploadInfo.object;
         var totalUpload = uploadInfo.getTotalBytes();
         if (!totalUpload || !isFinite(totalUpload) || totalUpload <= 0) {
             totalUpload = 1;
         }
-
+        if (task) {
             task.setUpload(totalUpload);
             task.setTotalUpload(totalUpload);
             task.setStatus("complete");
-            task.notify({ eventName: "progress", object: task, currentBytes: totalUpload, totalBytes: totalUpload });
-            task.notify({ eventName: "responded", object: task, data: serverResponse.getBodyAsString() });
-            task.notify({ eventName: "complete", object: task, response: serverResponse });
-   }
+            task.notify({eventName: "progress", object: task, currentBytes: totalUpload, totalBytes: totalUpload});
+            task.notify({eventName: "responded", object: task, data: serverResponse.getBodyAsString()});
+            task.notify({eventName: "complete", object: task, response: serverResponse});
+        }
+    }
 });
 
 var receiver;
@@ -79,7 +83,12 @@ export function session(id: string) {
 
 class ObservableBase extends data_observable.Observable {
     protected notifyPropertyChanged(propertyName: string, value: any): void {
-        this.notify({ object: this, eventName: data_observable.Observable.propertyChangeEvent, propertyName: propertyName, value: value });
+        this.notify({
+            object: this,
+            eventName: data_observable.Observable.propertyChangeEvent,
+            propertyName: propertyName,
+            value: value
+        });
     }
 }
 
@@ -166,7 +175,7 @@ class Task extends ObservableBase {
 
         var request = new net.gotev.uploadservice.MultipartUploadRequest(context, task._id, options.url);
 
-        for (var i=0;i<params.length;i++) {
+        for (var i = 0; i < params.length; i++) {
             var curParam = params[i];
             if (typeof curParam.name === 'undefined') {
                 throw new Error("You must have a `name` value");
@@ -177,7 +186,7 @@ class Task extends ObservableBase {
                 if (fileName.startsWith("~/")) {
                     fileName = fileName.replace("~/", fileSystemModule.knownFolders.currentApp().path + "/");
                 }
-                var destFileName = curParam.destFilename || fileName.substring(fileName.lastIndexOf('/')+1, fileName.length);
+                var destFileName = curParam.destFilename || fileName.substring(fileName.lastIndexOf('/') + 1, fileName.length);
 
                 request.addFileToUpload(fileName, curParam.name, destFileName, curParam.mimeType);
             } else {
@@ -194,7 +203,7 @@ class Task extends ObservableBase {
 
         var displayNotificationProgress = typeof options.androidDisplayNotificationProgress === "boolean" ? options.androidDisplayNotificationProgress : true;
         if (displayNotificationProgress) {
-          request.setNotificationConfig(new (<any>net).gotev.uploadservice.UploadNotificationConfig());
+            request.setNotificationConfig(new (<any>net).gotev.uploadservice.UploadNotificationConfig());
         }
 
         var headers = options.headers;
