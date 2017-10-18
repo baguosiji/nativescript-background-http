@@ -22,13 +22,13 @@ var ProgressReceiver = (<any>net).gotev.uploadservice.UploadServiceBroadcastRece
     onProgress(uploadInfo: UploadInfo) {
         //console.log("onProgress");
         var uploadId = uploadInfo.getUploadId();
-        var task = Task.fromId(uploadId);
-        var totalBytes = uploadInfo.getTotalBytes();
-        var currentBytes = uploadInfo.getUploadedBytes();
-        task.setTotalUpload(totalBytes);
-        task.setUpload(currentBytes);
-        task.setStatus("uploading");
-        task.notify({ eventName: "progress", object: task, currentBytes: currentBytes, totalBytes: totalBytes });
+        var task = uploadId?Task.fromId(uploadId):uploadInfo.object;
+            var totalBytes = uploadInfo.getTotalBytes();
+            var currentBytes = uploadInfo.getUploadedBytes();
+            task.setTotalUpload(totalBytes);
+            task.setUpload(currentBytes);
+            task.setStatus("uploading");
+            task.notify({ eventName: "progress", object: task, currentBytes: currentBytes, totalBytes: totalBytes });
     },
 
     onCancelled(uploadInfo: UploadInfo) {
@@ -47,19 +47,19 @@ var ProgressReceiver = (<any>net).gotev.uploadservice.UploadServiceBroadcastRece
     onCompleted(uploadInfo: UploadInfo, serverResponse: ServerResponse) {
         //console.log("onCompleted");
         var uploadId = uploadInfo.getUploadId();
-        var task = Task.fromId(uploadId);
+        var task = uploadId?Task.fromId(uploadId):uploadInfo.object;
 
         var totalUpload = uploadInfo.getTotalBytes();
         if (!totalUpload || !isFinite(totalUpload) || totalUpload <= 0) {
             totalUpload = 1;
         }
-        task.setUpload(totalUpload);
-        task.setTotalUpload(totalUpload);
-        task.setStatus("complete");
 
-        task.notify({ eventName: "progress", object: task, currentBytes: totalUpload, totalBytes: totalUpload });
-        task.notify({ eventName: "responded", object: task, data: serverResponse.getBodyAsString() });
-        task.notify({ eventName: "complete", object: task, response: serverResponse });
+            task.setUpload(totalUpload);
+            task.setTotalUpload(totalUpload);
+            task.setStatus("complete");
+            task.notify({ eventName: "progress", object: task, currentBytes: totalUpload, totalBytes: totalUpload });
+            task.notify({ eventName: "responded", object: task, data: serverResponse.getBodyAsString() });
+            task.notify({ eventName: "complete", object: task, response: serverResponse });
    }
 });
 
