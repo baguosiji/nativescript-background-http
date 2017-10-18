@@ -15,5 +15,13 @@
     "tsc": "tsc -p nativescript-background-http",
     "link": "cd nativescript-background-http && npm link && cd .. && cd examples/SimpleBackgroundHttp && npm link nativescript-background-http && cd ../..",
     "start": "node ./examples/www/server.js 8083"
-  }
+  },
+  "name": "nativescript-background-http",
+  "nativescript": {
+    "platforms": {
+      "android": "3.2.0",
+      "ios": "3.2.0"
+    }
+  },
+  "version": "0.0.1"
 }
